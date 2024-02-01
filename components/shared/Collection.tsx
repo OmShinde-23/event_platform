@@ -36,7 +36,7 @@ const Collection = ({
                   hidePrice={hidePrice}
                   />
                 </li>
-              )
+              )            
             })}
           </ul>
         </div>
@@ -51,3 +51,5 @@ const Collection = ({
 }
 
 export default Collection
+
+
