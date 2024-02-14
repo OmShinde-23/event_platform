@@ -133,7 +133,7 @@ const EventForm = ({userId, type, event, eventId }: EventFormProps) => {
         )}
       />
       </div>
-      <div className="dlex flex-col gap-5 md:flex-row">
+      <div className="flex flex-col gap-5 md:flex-row">
       <FormField
         control={form.control}
         name="description"
