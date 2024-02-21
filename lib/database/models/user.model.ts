@@ -9,6 +9,8 @@ const UserSchema = new Schema({
   photo: {type: String, required: true},
 })
 
+
+            // Either use the existing model or create a new one
 const User = models.User || model('User', UserSchema);
 
 export default User;

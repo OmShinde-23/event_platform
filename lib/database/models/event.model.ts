@@ -32,6 +32,8 @@ const EventSchema = new Schema({
 
 })
 
+
+          // Either use the existing model or create a new one
 const Event = models.Event ||  model('Event', EventSchema);
 
 export default Event;

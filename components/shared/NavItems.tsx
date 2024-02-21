@@ -7,6 +7,7 @@ import React from 'react'
 
 const NavItems = () => {
 
+  // usePathname is used to find which link is currently active 
   const pathname = usePathname();
   return (
     <ul className='md:flex-between flex w-full flex-col items-start gap-5 md:flex-row'>
