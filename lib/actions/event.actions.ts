@@ -20,21 +20,25 @@ import {
 const getCategoryByName = async (name: string) => {
   return Category.findOne({ name: { $regex: name, $options: 'i' } })
 }
-
+//popoulate information about organizer and category
 const populateEvent = (query: any) => {
   return query
     .populate({ path: 'organizer', model: User, select: '_id firstName lastName' })
     .populate({ path: 'category', model: Category, select: '_id name' })
 }
 
-// CREATE
+// CREATE EVENT
 export async function createEvent({ userId, event, path }: CreateEventParams) {
   try {
     await connectToDatabase()
 
+    //first find who is organizer
     const organizer = await User.findById(userId)
+
+    //if organizer not found, throw error
     if (!organizer) throw new Error('Organizer not found')
 
+    //if organizer found, create event
     const newEvent = await Event.create({ ...event, category: event.categoryId, organizer: userId })
     revalidatePath(path)
 
@@ -82,7 +86,7 @@ export async function updateEvent({ userId, event, path }: UpdateEventParams) {
   }
 }
 
-// DELETE
+// DELETE THE EVENT
 export async function deleteEvent({ eventId, path }: DeleteEventParams) {
   try {
     await connectToDatabase()
@@ -94,7 +98,7 @@ export async function deleteEvent({ eventId, path }: DeleteEventParams) {
   }
 }
 
-// GET ALL EVENTS
+// GET ALL EVENTS TO SHOW ON HOME PAGE
 export async function getAllEvents({ query, limit = 6, page, category }: GetAllEventsParams) {
   try {
     await connectToDatabase()
@@ -107,6 +111,7 @@ export async function getAllEvents({ query, limit = 6, page, category }: GetAllE
 
     const skipAmount = (Number(page) - 1) * limit
     const eventsQuery = Event.find(conditions)
+    //sort events in descending order which means new events appear on top
       .sort({ createdAt: 'desc' })
       .skip(skipAmount)
       .limit(limit)

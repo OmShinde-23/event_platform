@@ -42,7 +42,7 @@ const EventForm = ({userId, type, event, eventId }: EventFormProps) => {
   } : eventDefaultValues;
 
   const router = useRouter();
-
+  //form uploaded event image come from uploadthing(refer line 57)
   const { startUpload } = useUploadThing('imageUploader')
 
   const form = useForm<z.infer<typeof eventFormSchema>>({
@@ -50,13 +50,16 @@ const EventForm = ({userId, type, event, eventId }: EventFormProps) => {
     defaultValues: initialValues
   })
  
-  // 2. Define a submit handler.
+  // Define a submit handler.
   async function onSubmit(values: z.infer<typeof eventFormSchema>) {
+
+    //get the form uploaded event image
     let uploadedImageUrl = values.imageUrl;
 
     if(files.length > 0) {
       const uploadedImages = await startUpload(files)
 
+      //if image not uploaded get out of the function
       if(!uploadedImages) {
         return
       }
@@ -64,15 +67,18 @@ const EventForm = ({userId, type, event, eventId }: EventFormProps) => {
       uploadedImageUrl = uploadedImages[0].url
     }
 
+    // create event
     if(type === 'Create') {
-      // create event
       try {
         const newEvent = await createEvent({
           event:{ ...values, imageUrl: uploadedImageUrl },
+          //passing the userId who created event
           userId,
+          //redirect the path to profile
           path: '/profile'
         })
 
+        //if event created successfully reset the form and redirect to the event page 
         if(newEvent) {
           form.reset();
           router.push(`/events/${newEvent._id}`)
@@ -82,8 +88,8 @@ const EventForm = ({userId, type, event, eventId }: EventFormProps) => {
       }
     }
 
+    // update event
     if(type === 'Update') {
-      // update event
       if(!eventId){
         router.back()
         return;
@@ -313,9 +319,15 @@ const EventForm = ({userId, type, event, eventId }: EventFormProps) => {
       />
       
     </div>
-      <Button type="submit" size="lg" disabled={form.formState.isSubmitting}
-      className="button col-span-2 w-full">{form.formState.isSubmitting ? (
+      <Button
+       type="submit"
+       size="lg"
+       //disabled submitting form if already submitted
+       disabled={form.formState.isSubmitting}
+       className="button col-span-2 w-full">
+        {form.formState.isSubmitting ? (
          'Submitting...'
+          //type can be either create or update event
       ): `${type} Event `}</Button>
     </form>
   </Form>
