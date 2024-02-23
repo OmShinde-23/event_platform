@@ -8,7 +8,8 @@ import Image from 'next/image';
 //get event info for EventDetails Page by event id and related events by category
 const EventDetails = async ({ params: { id }, searchParams}: SearchParamProps) => {
   const event = await getEventById(id);
-
+  
+  //fetching related events by category
   const relatedEvents = await getRelatedEventsByCategory({
     categoryId: event.category._id,
     eventId: event._id,

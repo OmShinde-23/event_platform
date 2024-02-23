@@ -35,6 +35,8 @@ type EventFormProps = {
 const EventForm = ({userId, type, event, eventId }: EventFormProps) => {
   
   const [files, setFiles] = useState<File[]>([])
+
+  //to fill update event form with event created details
   const initialValues = event && type === 'Update' 
   ? {
     ...event, startDateTime: new Date(event.startDateTime),
@@ -67,7 +69,7 @@ const EventForm = ({userId, type, event, eventId }: EventFormProps) => {
       uploadedImageUrl = uploadedImages[0].url
     }
 
-    // create event
+    // before submitting check type of submission - if create event
     if(type === 'Create') {
       try {
         const newEvent = await createEvent({
@@ -88,7 +90,7 @@ const EventForm = ({userId, type, event, eventId }: EventFormProps) => {
       }
     }
 
-    // update event
+    // before submitting check type of submission - if update event
     if(type === 'Update') {
       if(!eventId){
         router.back()

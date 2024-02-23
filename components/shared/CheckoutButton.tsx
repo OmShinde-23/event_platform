@@ -19,6 +19,7 @@ const CheckoutButton = ({ event }: {event: IEvent}) => {
         <p className="p-2 text-red-400">Sorry, tickets are no longer available.</p>
       ):(
         <>
+          {/* if user not signed-in  */}
           <SignedOut>
             <Button asChild className="button rounded-full" size="lg">
               <Link href="/sign-in">
@@ -27,6 +28,7 @@ const CheckoutButton = ({ event }: {event: IEvent}) => {
             </Button>
           </SignedOut> 
 
+          {/* if user signed-in */}
           <SignedIn>
             <Checkout event={event} userId={userId} />
           </SignedIn>
