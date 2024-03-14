@@ -42,6 +42,15 @@ export async function createEvent({ userId, event, path }: CreateEventParams) {
     const newEvent = await Event.create({ ...event, category: event.categoryId, organizer: userId })
     revalidatePath(path)
 
+    const { SMTP_EMAIL, sendMail } = require('@/lib/email.ts')
+    await sendMail({
+      from: SMTP_EMAIL,
+      to: organizer.email,
+      subject: 'About Event Creation from Evently',
+      body: `Dear ${organizer.firstName} ${organizer.lastName},
+        Your event "${newEvent.title}" has been created successfully at ${newEvent.createdAt}.`
+    })
+
     return JSON.parse(JSON.stringify(newEvent))
   } catch (error) {
     handleError(error)
@@ -64,9 +73,11 @@ export async function getEventById(eventId: string) {
 }
 
 // UPDATE
-export async function updateEvent({ userId, event, path }: UpdateEventParams) {
+export async function updateEvent({ userId,  event, path }: UpdateEventParams) {
   try {
     await connectToDatabase()
+
+    const organizer = await User.findById(userId);
 
     const eventToUpdate = await Event.findById(event._id)
     if (!eventToUpdate || eventToUpdate.organizer.toHexString() !== userId) {
@@ -80,6 +91,15 @@ export async function updateEvent({ userId, event, path }: UpdateEventParams) {
     )
     revalidatePath(path)
 
+    const { SMTP_EMAIL, sendMail } = require('@/lib/email.ts')
+    await sendMail({
+      from: SMTP_EMAIL,
+      to: organizer.email,
+      subject: 'About Event Update from Evently',
+      body: `Dear ${organizer.firstName} ${organizer.lastName},
+        Your event "${updatedEvent.title}" has been updated successfully at ${ new Date(updatedEvent.createdAt)}.`
+    })
+
     return JSON.parse(JSON.stringify(updatedEvent))
   } catch (error) {
     handleError(error)
@@ -90,8 +110,9 @@ export async function updateEvent({ userId, event, path }: UpdateEventParams) {
 export async function deleteEvent({ eventId, path }: DeleteEventParams) {
   try {
     await connectToDatabase()
-
+    
     const deletedEvent = await Event.findByIdAndDelete(eventId)
+
     if (deletedEvent) revalidatePath(path)
   } catch (error) {
     handleError(error)

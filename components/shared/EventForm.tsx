@@ -20,6 +20,7 @@ import { useUploadThing } from "@/lib/uploadthing"
 import { useRouter } from "next/navigation"
 import { createEvent, updateEvent } from "@/lib/actions/event.actions"
 import { IEvent } from "@/lib/database/models/event.model"
+import { toast } from "react-toastify"
 
 
 
@@ -84,6 +85,7 @@ const EventForm = ({userId, type, event, eventId }: EventFormProps) => {
         if(newEvent) {
           form.reset();
           router.push(`/events/${newEvent._id}`)
+          toast.success('Event created successfully');
         }
       } catch (error) {
         console.log(error);
@@ -106,6 +108,7 @@ const EventForm = ({userId, type, event, eventId }: EventFormProps) => {
         if(updatedEvent) {
           form.reset();
           router.push(`/events/${updatedEvent._id}`)
+          toast.success('Event updated successfully');
         }
       } catch (error) {
         console.log(error);
