@@ -2,6 +2,8 @@ import EventForm from "@/components/shared/EventForm"
 import { auth } from "@clerk/nextjs";
 
 const CreateEvent = () => {
+
+  // this is the user id we pass to know the current user interacting with form 
   const { sessionClaims } = auth();
 
   const userId = sessionClaims?.userId as string;

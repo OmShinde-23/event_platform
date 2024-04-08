@@ -20,23 +20,36 @@ import {
 const getCategoryByName = async (name: string) => {
   return Category.findOne({ name: { $regex: name, $options: 'i' } })
 }
-
+//popoulate information about organizer and category
 const populateEvent = (query: any) => {
   return query
     .populate({ path: 'organizer', model: User, select: '_id firstName lastName' })
     .populate({ path: 'category', model: Category, select: '_id name' })
 }
 
-// CREATE
+// CREATE EVENT
 export async function createEvent({ userId, event, path }: CreateEventParams) {
   try {
     await connectToDatabase()
 
+    //first find who is organizer
     const organizer = await User.findById(userId)
+
+    //if organizer not found, throw error
     if (!organizer) throw new Error('Organizer not found')
 
+    //if organizer found, create event
     const newEvent = await Event.create({ ...event, category: event.categoryId, organizer: userId })
     revalidatePath(path)
+
+    const { SMTP_EMAIL, sendMail } = require('@/lib/email.ts')
+    await sendMail({
+      from: SMTP_EMAIL,
+      to: organizer.email,
+      subject: 'About Event Creation from Evently',
+      body: `Dear ${organizer.firstName} ${organizer.lastName},
+        Your event "${newEvent.title}" has been created successfully at ${newEvent.createdAt}.`
+    })
 
     return JSON.parse(JSON.stringify(newEvent))
   } catch (error) {
@@ -60,9 +73,11 @@ export async function getEventById(eventId: string) {
 }
 
 // UPDATE
-export async function updateEvent({ userId, event, path }: UpdateEventParams) {
+export async function updateEvent({ userId,  event, path }: UpdateEventParams) {
   try {
     await connectToDatabase()
+
+    const organizer = await User.findById(userId);
 
     const eventToUpdate = await Event.findById(event._id)
     if (!eventToUpdate || eventToUpdate.organizer.toHexString() !== userId) {
@@ -76,25 +91,35 @@ export async function updateEvent({ userId, event, path }: UpdateEventParams) {
     )
     revalidatePath(path)
 
+    const { SMTP_EMAIL, sendMail } = require('@/lib/email.ts')
+    await sendMail({
+      from: SMTP_EMAIL,
+      to: organizer.email,
+      subject: 'About Event Update from Evently',
+      body: `Dear ${organizer.firstName} ${organizer.lastName},
+        Your event "${updatedEvent.title}" has been updated successfully at ${ new Date(updatedEvent.createdAt)}.`
+    })
+
     return JSON.parse(JSON.stringify(updatedEvent))
   } catch (error) {
     handleError(error)
   }
 }
 
-// DELETE
+// DELETE THE EVENT
 export async function deleteEvent({ eventId, path }: DeleteEventParams) {
   try {
     await connectToDatabase()
-
+    
     const deletedEvent = await Event.findByIdAndDelete(eventId)
+
     if (deletedEvent) revalidatePath(path)
   } catch (error) {
     handleError(error)
   }
 }
 
-// GET ALL EVENTS
+// GET ALL EVENTS TO SHOW ON HOME PAGE
 export async function getAllEvents({ query, limit = 6, page, category }: GetAllEventsParams) {
   try {
     await connectToDatabase()
@@ -107,6 +132,7 @@ export async function getAllEvents({ query, limit = 6, page, category }: GetAllE
 
     const skipAmount = (Number(page) - 1) * limit
     const eventsQuery = Event.find(conditions)
+    //sort events in descending order which means new events appear on top
       .sort({ createdAt: 'desc' })
       .skip(skipAmount)
       .limit(limit)

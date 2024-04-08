@@ -1,7 +1,9 @@
+// this is a part of clerk middleware 
 import { authMiddleware } from "@clerk/nextjs";
  
 
 export default authMiddleware({
+  // Even if user not login they can access following routes :
   publicRoutes: [
     '/',
     '/events/:id',

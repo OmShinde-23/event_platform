@@ -16,11 +16,10 @@ const ProfilePage = async ({searchParams}: SearchParamProps) => {
   const eventsPage = Number(searchParams?.eventsPage) || 1;
 
   const orders =await getOrdersByUser({userId, page: ordersPage})
-
   const orderedEvents = orders?.data.map((order: IOrder) => order.event) || [];
+  
   const OrganizedEvents = await getEventsByUser({userId, page: eventsPage})
 
-  console.log({OrganizedEvents})
 
   return (
     <>

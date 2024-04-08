@@ -17,10 +17,20 @@ import {
 } from '@/components/ui/alert-dialog'
 
 import { deleteEvent } from '@/lib/actions/event.actions'
+import { toast } from 'react-toastify'
 
 export const DeleteConfirmation = ({ eventId }: { eventId: string }) => {
   const pathname = usePathname()
   let [isPending, startTransition] = useTransition()
+
+  const handleDelete = async ()=> {
+    try {
+      await deleteEvent({ eventId, path: pathname })
+      toast.success('Event deleted successfully')
+    } catch (error) {
+      toast.error('Failed to delete event')
+    }
+  }
 
   return (
     <AlertDialog>
@@ -42,7 +52,7 @@ export const DeleteConfirmation = ({ eventId }: { eventId: string }) => {
           <AlertDialogAction
             onClick={() =>
               startTransition(async () => {
-                await deleteEvent({ eventId, path: pathname })
+                handleDelete()
               })
             }>
             {isPending ? 'Deleting...' : 'Delete'}

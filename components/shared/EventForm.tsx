@@ -20,6 +20,7 @@ import { useUploadThing } from "@/lib/uploadthing"
 import { useRouter } from "next/navigation"
 import { createEvent, updateEvent } from "@/lib/actions/event.actions"
 import { IEvent } from "@/lib/database/models/event.model"
+import { toast } from "react-toastify"
 
 
 
@@ -35,6 +36,8 @@ type EventFormProps = {
 const EventForm = ({userId, type, event, eventId }: EventFormProps) => {
   
   const [files, setFiles] = useState<File[]>([])
+
+  //to fill update event form with event created details
   const initialValues = event && type === 'Update' 
   ? {
     ...event, startDateTime: new Date(event.startDateTime),
@@ -42,7 +45,7 @@ const EventForm = ({userId, type, event, eventId }: EventFormProps) => {
   } : eventDefaultValues;
 
   const router = useRouter();
-
+  //form uploaded event image come from uploadthing(refer line 57)
   const { startUpload } = useUploadThing('imageUploader')
 
   const form = useForm<z.infer<typeof eventFormSchema>>({
@@ -50,13 +53,16 @@ const EventForm = ({userId, type, event, eventId }: EventFormProps) => {
     defaultValues: initialValues
   })
  
-  // 2. Define a submit handler.
+  // Define a submit handler.
   async function onSubmit(values: z.infer<typeof eventFormSchema>) {
+
+    //get the form uploaded event image
     let uploadedImageUrl = values.imageUrl;
 
     if(files.length > 0) {
       const uploadedImages = await startUpload(files)
 
+      //if image not uploaded get out of the function
       if(!uploadedImages) {
         return
       }
@@ -64,26 +70,30 @@ const EventForm = ({userId, type, event, eventId }: EventFormProps) => {
       uploadedImageUrl = uploadedImages[0].url
     }
 
+    // before submitting check type of submission - if create event
     if(type === 'Create') {
-      // create event
       try {
         const newEvent = await createEvent({
           event:{ ...values, imageUrl: uploadedImageUrl },
+          //passing the userId who created event
           userId,
+          //redirect the path to profile
           path: '/profile'
         })
 
+        //if event created successfully reset the form and redirect to the event page 
         if(newEvent) {
           form.reset();
           router.push(`/events/${newEvent._id}`)
+          toast.success('Event created successfully');
         }
       } catch (error) {
         console.log(error);
       }
     }
 
+    // before submitting check type of submission - if update event
     if(type === 'Update') {
-      // update event
       if(!eventId){
         router.back()
         return;
@@ -98,6 +108,7 @@ const EventForm = ({userId, type, event, eventId }: EventFormProps) => {
         if(updatedEvent) {
           form.reset();
           router.push(`/events/${updatedEvent._id}`)
+          toast.success('Event updated successfully');
         }
       } catch (error) {
         console.log(error);
@@ -313,9 +324,15 @@ const EventForm = ({userId, type, event, eventId }: EventFormProps) => {
       />
       
     </div>
-      <Button type="submit" size="lg" disabled={form.formState.isSubmitting}
-      className="button col-span-2 w-full">{form.formState.isSubmitting ? (
+      <Button
+       type="submit"
+       size="lg"
+       //disabled submitting form if already submitted
+       disabled={form.formState.isSubmitting}
+       className="button col-span-2 w-full">
+        {form.formState.isSubmitting ? (
          'Submitting...'
+          //type can be either create or update event
       ): `${type} Event `}</Button>
     </form>
   </Form>

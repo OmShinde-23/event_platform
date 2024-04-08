@@ -1,24 +1,22 @@
-import CheckoutButton from '@/components/shared/CheckoutButton';
-import Collection from '@/components/shared/Collection';
-import { getEventById, getRelatedEventsByCategory } from '@/lib/actions/event.actions';
-import { formatDateTime } from '@/lib/utils';
+'use client';
+
+import { getEventById } from '@/lib/actions/event.actions';
 import { SearchParamProps } from '@/types'
 import Image from 'next/image';
+import { formatDateTime } from '@/lib/utils';
+import { Button } from '@/components/ui/button';
 
-//get event info for EventDetails Page by event id and related events by category
-const EventDetails = async ({ params: { id }, searchParams}: SearchParamProps) => {
+const EventDetails = async ({ params: {id}, searchParams}: SearchParamProps) => {
+
   const event = await getEventById(id);
-  
-  //fetching related events by category
-  const relatedEvents = await getRelatedEventsByCategory({
-    categoryId: event.category._id,
-    eventId: event._id,
-    page: searchParams.page as string,
-  })
+
+  const handlePrint = () => {
+    window.print();
+  }
   
   return (
-  <>
-    <section className='flex justify-center bg-primary-50 bg-dotted-pattern bg-contain'>
+    <>
+      <section className='flex justify-center bg-primary-50 bg-dotted-pattern bg-contain'>
       <div className='grid grid-cols-1 md:grid-cols-2 2xl:max-w-7xl'>
         <Image
           src={event.imageUrl}
@@ -33,9 +31,8 @@ const EventDetails = async ({ params: { id }, searchParams}: SearchParamProps) =
             <h2 className='h2-bold '>{event.title}</h2>
             <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
               <div className="flex gap-3">
-                <p className="p-bold-20 rounded-full bg-green-500/10 px-5 py-2 text-green-700">
-                  {/* if event is paid then show price else free */}
-                  {event.isFree ? 'FREE' : `₹${event.price}`}
+                <p className="p-bold-20 rounded-full bg-green-500/10 px-2 py-3 text-green-700 text-center">
+                  Ticket has been booked Successfully
                 </p>
                 <p className="p-medium-16 rounded-full bg-grey-500/10 px-4 py-2.5 text-grey-500 ">
                   {event.category.name}
@@ -46,10 +43,7 @@ const EventDetails = async ({ params: { id }, searchParams}: SearchParamProps) =
                 <span className="text-primary-500">{event.organizer.firstName} {event.organizer.lastName}</span>
               </p>
             </div>
-          </div>
-
-          {/* checkout Button  */}
-          <CheckoutButton event={event} />  
+          </div> 
 
           <div className="flex flex-col gap-5">
             <div className="flex gap-2 md:gap-3">
@@ -75,29 +69,15 @@ const EventDetails = async ({ params: { id }, searchParams}: SearchParamProps) =
             <p className="p-medium-16 lg:p-regular-18">{event.description}</p>
             <p className="p-medium-16 lg:p-regular-18 truncate text-primary-500 underline">{event.url}</p>
           </div>
+          <div className="w-full">
+          <Button onClick={handlePrint} className="button hidden  sm:flex">Print</Button>
+          </div>
+
         </div>
       </div>      
     </section>
-
-    {/* Events with the same category */}
-    <section className='wrapper my-8 flex flex-col gap-8 md:gap-12'>
-      <h2 className='h2-bold'>Related Events</h2>
-
-      <Collection
-        data={relatedEvents?.data}
-        emptyTitle="No Events Found"
-        emptyStateSubtext="Come back later"
-        collectionType="All_Events"
-        limit={3}
-        page={searchParams.page as string}
-        totalPages={relatedEvents?.totalPages}
-      />
-    </section>
-  </>
-
-
+    </>
   )
 }
 
 export default EventDetails
-
